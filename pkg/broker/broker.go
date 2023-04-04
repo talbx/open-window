@@ -10,6 +10,7 @@ import (
 )
 
 var received = false
+var change = service.ChangeService{}
 
 func Attach(){
 	opts := createMqttOpts()
@@ -50,7 +51,6 @@ var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
 		model.SugaredLogger.Error(err)
 	}
 
-	change := service.ChangeService{}
 	ok := change.IsOk(tuya.Humidity)
 
 	if !ok {

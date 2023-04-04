@@ -12,6 +12,8 @@ type Notifier interface {
 	buildMessage(tuya model.TuyaHumidity, t NotificationType) string
 }
 
+var _ Notifier = NotificationService{}
+
 type NotificationService struct{}
 type NotificationType int
 

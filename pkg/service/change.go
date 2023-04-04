@@ -7,10 +7,13 @@ type ChangeService struct{}
 var storedHumidity *model.TuyaHumidity = nil
 
 func (c ChangeService) IsResolved(h model.TuyaHumidity) bool {
-	if h.Humidity < c.LoadStoredHumidity().Humidity {
-		return c.IsOk(h.Humidity)
+	if nil != c.LoadStoredHumidity() {
+		if h.Humidity < c.LoadStoredHumidity().Humidity {
+			return c.IsOk(h.Humidity)
+		}
+		return false
 	}
-	return false
+	return c.IsOk(h.Humidity)
 }
 
 func (c ChangeService) StoreHumidity(h model.TuyaHumidity) {
@@ -18,9 +21,9 @@ func (c ChangeService) StoreHumidity(h model.TuyaHumidity) {
 	storedHumidity = &h
 }
 
-func (c ChangeService) LoadStoredHumidity() model.TuyaHumidity {
+func (c ChangeService) LoadStoredHumidity() *model.TuyaHumidity {
 	model.SugaredLogger.Debugf("Loaded stored humidity %v from cache", storedHumidity)
-	return *storedHumidity
+	return storedHumidity
 }
 
 func (c ChangeService) IsOk(humidity float32) bool {
