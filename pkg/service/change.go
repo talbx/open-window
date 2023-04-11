@@ -2,30 +2,47 @@ package service
 
 import "github.com/talbx/openwindow/pkg/model"
 
-type ChangeService struct{}
+type ChangeService struct {
+	N Notifier
+}
 
-var storedHumidity *model.TuyaHumidity = nil
+var storedHumidity map[string]float32 = make(map[string]float32)
+
+func (c ChangeService) HandleChange(h model.TuyaHumidity) {
+	old := c.LoadStoredHumidity(h.Device)
+	c.StoreHumidity(h.Device, h.Humidity)
+
+	if !c.IsOk(old) && c.IsOk(h.Humidity) {
+		model.SugaredLogger.Infof("Humidity Resolved for %v; values in sweetspot again (%v). Will Notify!", h.Device, h.Humidity)
+		c.N.Notify(h, RESOLVED)
+		return
+	} else if !c.IsOk(h.Humidity) {
+		model.SugaredLogger.Infof("%s - have to notify since humidity is outside sweetspot (%.2f)", h.Device, h.Humidity)
+		c.N.Notify(h, FIRING)
+		return
+	}
+	model.SugaredLogger.Infof("%s - no notification sent, since humidity is in sweetspot (%.2f)", h.Device, h.Humidity)
+}
 
 func (c ChangeService) IsResolved(h model.TuyaHumidity) bool {
-	if nil != c.LoadStoredHumidity() {
-		if h.Humidity < c.LoadStoredHumidity().Humidity {
-			return c.IsOk(h.Humidity)
-		}
-		return false
+	hum := c.LoadStoredHumidity(h.Device)
+	if h.Humidity < hum {
+		return c.IsOk(h.Humidity)
 	}
 	return c.IsOk(h.Humidity)
 }
 
-func (c ChangeService) StoreHumidity(h model.TuyaHumidity) {
-	model.SugaredLogger.Debugf("Stored humidity %v in cache", h)
-	storedHumidity = &h
+func (c ChangeService) StoreHumidity(device string, humidity float32) {
+	model.SugaredLogger.Debugf("Stored humidity %v in cache for device %v", humidity, device)
+	storedHumidity[device] = humidity
 }
 
-func (c ChangeService) LoadStoredHumidity() *model.TuyaHumidity {
-	model.SugaredLogger.Debugf("Loaded stored humidity %v from cache", storedHumidity)
-	return storedHumidity
+func (c ChangeService) LoadStoredHumidity(device string) float32 {
+	h := storedHumidity[device]
+	model.SugaredLogger.Debugf("Loaded %v's stored humidity %v from cache", device, h)
+	return h
 }
 
 func (c ChangeService) IsOk(humidity float32) bool {
-	return humidity >= 40.0 && humidity <= 60.0
+	return humidity == 0.0 || (humidity >= 40.0 && humidity <= 60.0)
 }

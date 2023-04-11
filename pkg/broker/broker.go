@@ -10,7 +10,8 @@ import (
 )
 
 var received = false
-var change = service.ChangeService{}
+var n = service.NotificationService{}
+var change = service.ChangeService{n}
 
 func Attach(){
 	opts := createMqttOpts()
@@ -43,29 +44,13 @@ func OnConnect(c MQTT.Client) {
 
 var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
 	var tuya model.TuyaHumidity
-	var n service.Notifier = service.NotificationService{}
 	json.Unmarshal(msg.Payload(), &tuya)
 	room, err := translateName(msg.Topic())
 	tuya.Device = room
 	if err != nil {
 		model.SugaredLogger.Error(err)
 	}
-
-	ok := change.IsOk(tuya.Humidity)
-
-	if !ok {
-		model.SugaredLogger.Infof("%s - have to notify since humidity is outside sweetspot (%.2f)", tuya.Device, tuya.Humidity)
-		change.StoreHumidity(tuya)
-		n.Notify(tuya, service.FIRING)
-		return
-	}
-	resolved := change.IsResolved(tuya)
-
-	if resolved {
-		model.SugaredLogger.Infof("Humidity Resolved for %v; values in sweetspot again (%v). Will Notify!", tuya.Device, tuya.Humidity)
-		n.Notify(tuya, service.RESOLVED)
-	}
-	model.SugaredLogger.Infof("%s - no notification sent, since humidity is in sweetspot (%.2f)", tuya.Device, tuya.Humidity)
+	change.HandleChange(tuya)
 }
 
 func translateName(topic string) (string, error) {
