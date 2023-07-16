@@ -34,10 +34,12 @@ func (n NotificationService) Notify(tuya model.TuyaHumidity, t NotificationType)
 	recipient := pushover.NewRecipient(model.OWC.UserToken)
 	response, err := app.SendMessage(message, recipient)
 	if err != nil {
-		model.SugaredLogger.Panic(err)
+		model.SugaredLogger.Error(err)
+		model.SugaredLogger.Errorf("No pushover message sent out due to an error communicating with the pusover api!")
+		return
 	}
 
-	model.SugaredLogger.Infof("Sent out pushover message with id %v", response.ID)
+	model.SugaredLogger.Infof("Sucessfully sent out pushover message with id %v", response.ID)
 }
 
 func (n NotificationService) buildMessage(tuya model.TuyaHumidity, t NotificationType) string {
