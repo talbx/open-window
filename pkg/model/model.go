@@ -17,27 +17,31 @@ type TuyaHumidity struct {
 
 type Device struct {
 	Topic string
-	Room string
+	Room  string
 }
 
 type OpenWindowConfig struct {
 	ApiToken     string
 	UserToken    string
-	MqttHost     string `toml:"host"`
-	MqttClientId string `toml:"clientId"`
+	MqttHost     string   `toml:"host"`
+	MqttClientId string   `toml:"clientId"`
 	Devices      []Device `toml:"devices"`
+	Interval     string   `toml:"interval"`
 }
 
 var OWC OpenWindowConfig
 
-func CreateOpenWindowConfig(){
+func CreateOpenWindowConfig() {
 	file, err := os.ReadFile("config.toml")
 	if err != nil {
 		SugaredLogger.Error(err)
+		SugaredLogger.Error("No config.toml provided, will exit now!")
+		os.Exit(1)
 	}
 	err = toml.Unmarshal(file, &OWC)
 
 	if err != nil {
-		panic(err)
+		SugaredLogger.Errorf("there was an error parsing the config.toml", err)
+		os.Exit(1)
 	}
 }

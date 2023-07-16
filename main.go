@@ -5,8 +5,8 @@ import (
 	"os/signal"
 	"syscall"
 
-	"github.com/talbx/openwindow/pkg/broker"
-	"github.com/talbx/openwindow/pkg/model"
+	broker "github.com/talbx/openwindow/pkg/broker"
+	model "github.com/talbx/openwindow/pkg/model"
 )
 
 var c chan os.Signal

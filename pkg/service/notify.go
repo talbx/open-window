@@ -14,6 +14,10 @@ type Notifier interface {
 
 var _ Notifier = NotificationService{}
 
+type Meta struct {
+	Priority int
+	Sound    string
+}
 type NotificationService struct{}
 type NotificationType int
 
@@ -25,11 +29,12 @@ const (
 func (n NotificationService) Notify(tuya model.TuyaHumidity, t NotificationType) {
 	app := pushover.New(model.OWC.ApiToken)
 
+	meta := buildMeta(t)
 	message := &pushover.Message{
 		Message:  n.buildMessage(tuya, t),
 		Title:    tuya.Device,
-		Priority: pushover.PriorityHigh,
-		Sound:    pushover.SoundCosmic,
+		Priority: meta.Priority,
+		Sound:    meta.Sound,
 	}
 	recipient := pushover.NewRecipient(model.OWC.UserToken)
 	response, err := app.SendMessage(message, recipient)
@@ -47,4 +52,17 @@ func (n NotificationService) buildMessage(tuya model.TuyaHumidity, t Notificatio
 		return fmt.Sprintf("%.2f humidity!", tuya.Humidity)
 	}
 	return fmt.Sprintf("Resolved! Humidity at %.2f okay again", tuya.Humidity)
+}
+
+func buildMeta(t NotificationType) Meta {
+	if t == FIRING {
+		return Meta{
+			Priority: pushover.PriorityHigh,
+			Sound:    pushover.SoundCosmic,
+		}
+	}
+	return Meta{
+		Priority: pushover.PriorityLow,
+		Sound:    pushover.SoundMagic,
+	}
 }
