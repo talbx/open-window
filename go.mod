@@ -16,7 +16,7 @@ require (
 require (
 	github.com/BurntSushi/toml v1.2.1
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/gregdel/pushover v1.1.0
+	github.com/gregdel/pushover v1.2.0
 	github.com/magiconair/properties v1.8.7
 	github.com/stretchr/testify v1.8.2
 	go.uber.org/zap v1.24.0
