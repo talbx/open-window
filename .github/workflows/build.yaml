@@ -1,0 +1,24 @@
+name: build-open-window-build
+on:
+  push:
+    tags:
+        - "v*.*.*"
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-go@v4
+      with:
+        go-version: '^1.20.4'
+    - run: go version
+      name: display go version
+    - name: unit tests
+      run: go test -v ./...
+    - name: sonar
+      run: echo "sonar not implemented"
+    - name: build executable
+      run: go build .
