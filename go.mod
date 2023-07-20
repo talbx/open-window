@@ -2,7 +2,7 @@ module github.com/talbx/openwindow
 
 go 1.19
 
-require github.com/eclipse/paho.mqtt.golang v1.4.2
+require github.com/eclipse/paho.mqtt.golang v1.4.3
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
@@ -15,7 +15,7 @@ require (
 
 require (
 	github.com/BurntSushi/toml v1.2.1
-	github.com/gorilla/websocket v1.4.2 // indirect
+	github.com/gorilla/websocket v1.5.0 // indirect
 	github.com/gregdel/pushover v1.1.0
 	github.com/magiconair/properties v1.8.7
 	github.com/stretchr/testify v1.8.2
