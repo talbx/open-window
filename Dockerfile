@@ -1,4 +1,4 @@
-FROM golang:1.20.1-alpine3.17 as gobuild
+FROM golang:1.20.6-alpine3.17 as gobuild
 
 WORKDIR /app
 RUN apk update
