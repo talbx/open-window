@@ -1,4 +1,4 @@
-name: build-open-window-build
+name: open-window-build
 on:
   push:
     tags:
