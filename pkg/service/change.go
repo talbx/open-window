@@ -8,7 +8,7 @@ type ChangeService struct {
 	N Notifier
 }
 
-var storedHumidity map[string]float32 = make(map[string]float32)
+var storedHumidity = make(map[string]float32)
 
 func (c ChangeService) HandleChange(h model.TuyaHumidity) {
 	old := c.LoadStoredHumidity(h.Device)
