@@ -47,7 +47,7 @@ func Test_HandleChange(t *testing.T){
 		Humidity: 59.3,
 	}
 
-	service := ChangeService{N: F}
+	service := ChangeService{N: &F}
 
 	service.HandleChange(a1)
 	assert.Equal(t, receivedType, FIRING)
@@ -55,7 +55,6 @@ func Test_HandleChange(t *testing.T){
 	assert.Equal(t, receivedType, FIRING)
 	service.HandleChange(b3)
 	F.Mock.AssertNotCalled(t,"Notify")
-	assert.Equal(t, receivedType, 0.0)
 	service.HandleChange(a4)
 	assert.Equal(t, receivedType, RESOLVED)
 
