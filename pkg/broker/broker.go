@@ -23,31 +23,36 @@ func Attach() {
 		model.SugaredLogger.Error(token.Error())
 		os.Exit(1)
 	} else {
-		model.SugaredLogger.Infof("Connected to mosquitto instance on %v", model.OWC.MqttHost)
+		model.SugaredLogger.Infof("Connected to mosquitto instance on %v", model.OWC.MqttConfig.Host)
 	}
 }
 
 func createMqttOpts() *MQTT.ClientOptions {
-	opts := MQTT.NewClientOptions().AddBroker(model.OWC.MqttHost)
-	opts.SetClientID(model.OWC.MqttClientId + "-" + time.Now().Format(time.DateOnly))
+	opts := MQTT.NewClientOptions().AddBroker(model.OWC.MqttConfig.Host)
+	opts.SetClientID(model.OWC.MqttConfig.ClientId + "-" + time.Now().Format(time.DateOnly))
 	model.SugaredLogger.Infof("Set the MQTT Client Id to %v", opts.ClientID)
-	opts.SetDefaultPublishHandler(f)
+	opts.SetDefaultPublishHandler(handleMessage)
 	return opts
 }
 
 func OnConnect(c MQTT.Client) {
 	for _, device := range model.OWC.Devices {
-		if token := c.Subscribe(device.Topic, 0, f); token.Wait() && token.Error() != nil {
+		if token := c.Subscribe(device.Topic, 0, handleMessage); token.Wait() && token.Error() != nil {
 			model.SugaredLogger.Errorf("there was an error during topic subscription for %v", device.Topic)
 			panic(token.Error())
 		}
 	}
 }
 
-var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
+func handleMessage(_ MQTT.Client, msg MQTT.Message) {
 	var tuya model.TuyaHumidity
-	json.Unmarshal(msg.Payload(), &tuya)
-	room, err := translateName(msg.Topic())
+	err := json.Unmarshal(msg.Payload(), &tuya)
+
+	if err != nil {
+		model.SugaredLogger.Errorf("the message payload could not be unmarshaled: %v", err)
+	}
+
+	room, err := Translate(msg.Topic())
 	tuya.Device = room
 	if err != nil {
 		model.SugaredLogger.Errorf("the topic %v could not be translated into a room as defined in config.toml", err)
@@ -56,7 +61,7 @@ var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
 	change.HandleChange(tuya)
 }
 
-func translateName(topic string) (string, error) {
+func Translate(topic string) (string, error) {
 	for _, device := range model.OWC.Devices {
 		if device.Topic == topic {
 			return device.Room, nil

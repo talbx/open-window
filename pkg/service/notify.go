@@ -26,7 +26,7 @@ const (
 )
 
 func (n NotificationService) Notify(tuya model.TuyaHumidity, t NotificationType) {
-	app := pushover.New(model.OWC.ApiToken)
+	app := pushover.New(model.OWC.PushoverConfig.ApiToken)
 
 	meta := buildMeta(t)
 	message := &pushover.Message{
@@ -35,7 +35,7 @@ func (n NotificationService) Notify(tuya model.TuyaHumidity, t NotificationType)
 		Priority: meta.Priority,
 		Sound:    meta.Sound,
 	}
-	recipient := pushover.NewRecipient(model.OWC.UserToken)
+	recipient := pushover.NewRecipient(model.OWC.PushoverConfig.UserToken)
 	response, err := app.SendMessage(message, recipient)
 	if err != nil {
 		model.SugaredLogger.Error(err)
