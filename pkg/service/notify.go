@@ -9,7 +9,6 @@ import (
 
 type Notifier interface {
 	Notify(model.TuyaHumidity, NotificationType)
-	buildMessage(model.TuyaHumidity, NotificationType) string
 }
 
 var _ Notifier = NotificationService{}

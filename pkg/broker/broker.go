@@ -4,13 +4,13 @@ import (
 	"encoding/json"
 	"errors"
 	"os"
+	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/talbx/openwindow/pkg/model"
 	"github.com/talbx/openwindow/pkg/service"
 )
 
-var received = false
 var n = service.NotificationService{}
 var change = service.ChangeService{N: n}
 
@@ -29,7 +29,8 @@ func Attach() {
 
 func createMqttOpts() *MQTT.ClientOptions {
 	opts := MQTT.NewClientOptions().AddBroker(model.OWC.MqttHost)
-	opts.SetClientID(model.OWC.MqttClientId)
+	opts.SetClientID(model.OWC.MqttClientId + "-" + time.Now().Format(time.DateOnly))
+	model.SugaredLogger.Infof("Set the MQTT Client Id to %v", opts.ClientID)
 	opts.SetDefaultPublishHandler(f)
 	return opts
 }
@@ -40,9 +41,6 @@ func OnConnect(c MQTT.Client) {
 			model.SugaredLogger.Errorf("there was an error during topic subscription for %v", device.Topic)
 			panic(token.Error())
 		}
-	}
-	if received {
-		println("receviced")
 	}
 }
 

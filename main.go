@@ -9,15 +9,15 @@ import (
 	model "github.com/talbx/openwindow/pkg/model"
 )
 
-var c chan os.Signal
+var bc chan os.Signal
 
 func main() {
 	logger := model.CreateSugaredLogger()
 	model.CreateOpenWindowConfig()
-	c = make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+	bc = make(chan os.Signal, 1)
+	signal.Notify(bc, os.Interrupt, syscall.SIGTERM)
 	broker.Attach()
-	ch := <-c
+	sig := <-bc
 
-	logger.Debugf("bye bye: %s", ch.String())
+	logger.Debugf("bye bye: %s", sig.String())
 }
