@@ -3,7 +3,6 @@ package broker
 import (
 	"encoding/json"
 	"errors"
-	"github.com/gregdel/pushover"
 	"os"
 	"time"
 
@@ -12,40 +11,52 @@ import (
 	"github.com/talbx/openwindow/pkg/service"
 )
 
-var n = service.NotifyBridge{RealNotifier: service.NotificationService{App: pushover.New(model.OWC.PushoverConfig.ApiToken)}}
-var change = service.ChangeService{N: n}
+type Broker struct {
+	Change service.CanChange
+	Exiter
+}
 
-func Attach() {
-	opts := createMqttOpts()
-	opts.OnConnect = OnConnect
+func (b Broker) Attach() {
+	opts := b.createMqttOpts()
+	opts.OnConnect = b.OnConnect
 	client := MQTT.NewClient(opts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
+	token := client.Connect()
+	b.Connect(token)
+}
+
+func (b Broker) Connect(token MQTT.Token) {
+	if token.Wait() && token.Error() != nil {
 		model.SugaredLogger.Error("could not etablish a stable connection to the broker using client::connect")
-		model.SugaredLogger.Error(token.Error())
-		os.Exit(1)
+		b.Exiter.Exit(token.Error())
 	} else {
 		model.SugaredLogger.Infof("Connected to mosquitto instance on %v", model.OWC.MqttConfig.Host)
 	}
 }
 
-func createMqttOpts() *MQTT.ClientOptions {
+func (e ExitHandler) Exit(tokenError error) {
+	model.SugaredLogger.Error(tokenError)
+	os.Exit(1)
+}
+
+func (b Broker) createMqttOpts() *MQTT.ClientOptions {
 	opts := MQTT.NewClientOptions().AddBroker(model.OWC.MqttConfig.Host)
 	opts.SetClientID(model.OWC.MqttConfig.ClientId + "-" + time.Now().Format(time.DateOnly))
 	model.SugaredLogger.Infof("Set the MQTT Client Id to %v", opts.ClientID)
-	opts.SetDefaultPublishHandler(handleMessage)
+	opts.SetDefaultPublishHandler(b.HandleMessage)
 	return opts
 }
 
-func OnConnect(c MQTT.Client) {
+func (b Broker) OnConnect(c MQTT.Client) {
 	for _, device := range model.OWC.Devices {
-		if token := c.Subscribe(device.Topic, 0, handleMessage); token.Wait() && token.Error() != nil {
+		token := c.Subscribe(device.Topic, 0, b.HandleMessage)
+		if token.Wait() && token.Error() != nil {
 			model.SugaredLogger.Errorf("there was an error during topic subscription for %v", device.Topic)
 			panic(token.Error())
 		}
 	}
 }
 
-func handleMessage(_ MQTT.Client, msg MQTT.Message) {
+func (b Broker) HandleMessage(_ MQTT.Client, msg MQTT.Message) {
 	var tuya model.TuyaHumidity
 	err := json.Unmarshal(msg.Payload(), &tuya)
 
@@ -59,7 +70,7 @@ func handleMessage(_ MQTT.Client, msg MQTT.Message) {
 		model.SugaredLogger.Errorf("the topic %v could not be translated into a room as defined in config.toml", err)
 		return
 	}
-	change.HandleChange(tuya)
+	b.Change.HandleChange(tuya)
 }
 
 func Translate(topic string) (string, error) {
@@ -70,3 +81,9 @@ func Translate(topic string) (string, error) {
 	}
 	return "", errors.New("There is no device configuration for this presented topic: " + topic)
 }
+
+type Exiter interface {
+	Exit(error)
+}
+
+type ExitHandler struct{}

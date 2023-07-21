@@ -1,6 +1,7 @@
 package service
 
 import (
+	"errors"
 	"github.com/gregdel/pushover"
 	"github.com/stretchr/testify/mock"
 	model2 "github.com/talbx/openwindow/pkg/model"
@@ -11,13 +12,16 @@ type pushoverMock struct {
 	mock.Mock
 }
 
+var sendMsgResp pushover.Response = pushover.Response{
+	Status:  200,
+	ID:      "Success",
+	Receipt: "It worked",
+}
+var sendMsgErr error = nil
+
 func (p *pushoverMock) SendMessage(message *pushover.Message, recipient *pushover.Recipient) (*pushover.Response, error) {
 	p.Called(message, recipient)
-	return &pushover.Response{
-		Status:  200,
-		ID:      "Success",
-		Receipt: "It worked",
-	}, nil
+	return &sendMsgResp, sendMsgErr
 }
 func TestNotify_Firing(t *testing.T) {
 	// given
@@ -38,6 +42,25 @@ func TestNotify_Firing(t *testing.T) {
 func TestNotify_Resolved(t *testing.T) {
 
 	// given
+	model2.OWC.PushoverConfig.UserToken = "ABC"
+	model2.CreateSugaredLogger()
+	msg, rec := buildArgs(pushover.SoundMagic, pushover.PriorityLow, "Some Device", "Resolved! Humidity at 59.00 okay again", "ABC")
+	model := model2.TuyaHumidity{Humidity: 59.0, Device: "Some Device"}
+	var m = new(pushoverMock)
+	n := NotificationService{App: m}
+
+	// when
+	m.On("SendMessage", msg, rec)
+	n.Notify(model, RESOLVED)
+
+	// then
+	m.AssertCalled(t, "SendMessage", msg, rec)
+}
+
+func TestNotify_Send_err(t *testing.T) {
+
+	// given
+	sendMsgErr = errors.New("Some err")
 	model2.OWC.PushoverConfig.UserToken = "ABC"
 	model2.CreateSugaredLogger()
 	msg, rec := buildArgs(pushover.SoundMagic, pushover.PriorityLow, "Some Device", "Resolved! Humidity at 59.00 okay again", "ABC")

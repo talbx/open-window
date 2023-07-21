@@ -8,6 +8,10 @@ type ChangeService struct {
 	N Notifier
 }
 
+type CanChange interface {
+	HandleChange(h model.TuyaHumidity)
+}
+
 var storedHumidity = make(map[string]float32)
 
 func (c ChangeService) HandleChange(h model.TuyaHumidity) {
