@@ -3,58 +3,79 @@ package broker
 import (
 	"encoding/json"
 	"errors"
+	"os"
+	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 	"github.com/talbx/openwindow/pkg/model"
 	"github.com/talbx/openwindow/pkg/service"
 )
 
-var received = false
-var n = service.NotificationService{}
-var change = service.ChangeService{n}
+type Broker struct {
+	Change service.CanChange
+	Exiter
+}
 
-func Attach(){
-	opts := createMqttOpts()
-	opts.OnConnect = OnConnect
+func (b Broker) Attach() {
+	opts := b.createMqttOpts()
+	opts.OnConnect = b.OnConnect
 	client := MQTT.NewClient(opts)
-	if token := client.Connect(); token.Wait() && token.Error() != nil {
-		panic(token.Error())
+	token := client.Connect()
+	b.Connect(token)
+}
+
+func (b Broker) Connect(token MQTT.Token) {
+	if token.Wait() && token.Error() != nil {
+		model.SugaredLogger.Error("could not etablish a stable connection to the broker using client::connect")
+		b.Exiter.Exit(token.Error())
 	} else {
-		model.SugaredLogger.Infof("Connected to mosquitto instance on %v", model.OWC.MqttHost)
+		model.SugaredLogger.Infof("Connected to mosquitto instance on %v", model.OWC.MqttConfig.Host)
 	}
 }
 
-func createMqttOpts() *MQTT.ClientOptions {
-	opts := MQTT.NewClientOptions().AddBroker(model.OWC.MqttHost)
-	opts.SetClientID(model.OWC.MqttClientId)
-	opts.SetDefaultPublishHandler(f)
+func (e ExitHandler) Exit(tokenError error) {
+	model.SugaredLogger.Error(tokenError)
+	os.Exit(1)
+}
+
+func (b Broker) createMqttOpts() *MQTT.ClientOptions {
+	opts := MQTT.NewClientOptions().AddBroker(model.OWC.MqttConfig.Host)
+	clId := model.GetGlobalConfig().ClientId + "-" + time.Now().Format(time.DateOnly)
+	opts.SetClientID(clId)
+	model.SugaredLogger.Infof("Set the MQTT Client Id to %v", clId)
+	opts.SetDefaultPublishHandler(b.HandleMessage)
 	return opts
 }
 
-func OnConnect(c MQTT.Client) {
-	for _, device := range model.OWC.Devices{
-		if token := c.Subscribe(device.Topic, 0, f); token.Wait() && token.Error() != nil {
+func (b Broker) OnConnect(c MQTT.Client) {
+	for _, device := range model.OWC.Devices {
+		token := c.Subscribe(device.Topic, 0, b.HandleMessage)
+		if token.Wait() && token.Error() != nil {
+			model.SugaredLogger.Errorf("there was an error during topic subscription for %v", device.Topic)
 			panic(token.Error())
 		}
 	}
-	if received {
-		println("receviced")
-	}
 }
 
-var f MQTT.MessageHandler = func(client MQTT.Client, msg MQTT.Message) {
+func (b Broker) HandleMessage(_ MQTT.Client, msg MQTT.Message) {
 	var tuya model.TuyaHumidity
-	json.Unmarshal(msg.Payload(), &tuya)
-	room, err := translateName(msg.Topic())
+	err := json.Unmarshal(msg.Payload(), &tuya)
+
+	if err != nil {
+		model.SugaredLogger.Errorf("the message payload could not be unmarshaled: %v", err)
+	}
+
+	room, err := Translate(msg.Topic())
 	tuya.Device = room
 	if err != nil {
-		model.SugaredLogger.Error(err)
+		model.SugaredLogger.Errorf("the topic %v could not be translated into a room as defined in config.toml", err)
+		return
 	}
-	change.HandleChange(tuya)
+	b.Change.HandleChange(tuya)
 }
 
-func translateName(topic string) (string, error) {
-	for _, device := range model.OWC.Devices{
+func Translate(topic string) (string, error) {
+	for _, device := range model.OWC.Devices {
 		if device.Topic == topic {
 			return device.Room, nil
 		}
@@ -62,3 +83,8 @@ func translateName(topic string) (string, error) {
 	return "", errors.New("There is no device configuration for this presented topic: " + topic)
 }
 
+type Exiter interface {
+	Exit(error)
+}
+
+type ExitHandler struct{}

@@ -3,7 +3,7 @@ package model
 import (
 	"os"
 
-	"github.com/BurntSushi/toml"
+	"gopkg.in/yaml.v3"
 )
 
 type TuyaHumidity struct {
@@ -17,27 +17,47 @@ type TuyaHumidity struct {
 
 type Device struct {
 	Topic string
-	Room string
+	Room  string
+}
+
+type PushoverConfig struct {
+	ApiToken  string
+	UserToken string
+}
+
+type MqttConfig struct {
+	Host     string
+	ClientId string `yaml:"clientId"`
+}
+
+type GlobalConfig struct {
+	PushoverConfig   `yaml:"pushover"`
+	OpenWindowConfig `yaml:"openwindow"`
+	MqttConfig       `yaml:"mqtt"`
 }
 
 type OpenWindowConfig struct {
-	ApiToken     string
-	UserToken    string
-	MqttHost     string `toml:"host"`
-	MqttClientId string `toml:"clientId"`
-	Devices      []Device `toml:"devices"`
+	Devices  []Device
+	Interval int
 }
 
-var OWC OpenWindowConfig
+var OWC GlobalConfig
 
-func CreateOpenWindowConfig(){
-	file, err := os.ReadFile("config.toml")
+func GetGlobalConfig() *GlobalConfig {
+	return &OWC
+}
+
+func CreateOpenWindowConfig() {
+	file, err := os.ReadFile("config.yaml")
 	if err != nil {
 		SugaredLogger.Error(err)
+		SugaredLogger.Error("No config.yaml provided, will exit now!")
+		os.Exit(1)
 	}
-	err = toml.Unmarshal(file, &OWC)
+	err = yaml.Unmarshal(file, &OWC)
 
 	if err != nil {
-		panic(err)
+		SugaredLogger.Errorf("there was an error parsing the config.toml", err)
+		os.Exit(1)
 	}
 }

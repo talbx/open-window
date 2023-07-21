@@ -1,12 +1,18 @@
 package service
 
-import "github.com/talbx/openwindow/pkg/model"
+import (
+	"github.com/talbx/openwindow/pkg/model"
+)
 
 type ChangeService struct {
 	N Notifier
 }
 
-var storedHumidity map[string]float32 = make(map[string]float32)
+type CanChange interface {
+	HandleChange(h model.TuyaHumidity)
+}
+
+var storedHumidity = make(map[string]float32)
 
 func (c ChangeService) HandleChange(h model.TuyaHumidity) {
 	old := c.LoadStoredHumidity(h.Device)
@@ -17,11 +23,11 @@ func (c ChangeService) HandleChange(h model.TuyaHumidity) {
 		c.N.Notify(h, RESOLVED)
 		return
 	} else if !c.IsOk(h.Humidity) {
-		model.SugaredLogger.Infof("%s - have to notify since humidity is outside sweetspot (%.2f)", h.Device, h.Humidity)
+		model.SugaredLogger.Infof("%s - Humidity is outside sweetspot (%.2f)", h.Device, h.Humidity)
 		c.N.Notify(h, FIRING)
 		return
 	}
-	model.SugaredLogger.Infof("%s - no notification sent, since humidity is in sweetspot (%.2f)", h.Device, h.Humidity)
+	model.SugaredLogger.Infof("%s - no notification needed, since humidity is in sweetspot (%.2f)", h.Device, h.Humidity)
 }
 
 func (c ChangeService) IsResolved(h model.TuyaHumidity) bool {
@@ -30,6 +36,10 @@ func (c ChangeService) IsResolved(h model.TuyaHumidity) bool {
 		return c.IsOk(h.Humidity)
 	}
 	return c.IsOk(h.Humidity)
+}
+
+func (c ChangeService) IsOk(humidity float32) bool {
+	return humidity == 0.0 || (humidity >= 40.0 && humidity < 60.0)
 }
 
 func (c ChangeService) StoreHumidity(device string, humidity float32) {
@@ -41,8 +51,4 @@ func (c ChangeService) LoadStoredHumidity(device string) float32 {
 	h := storedHumidity[device]
 	model.SugaredLogger.Debugf("Loaded %v's stored humidity %v from cache", device, h)
 	return h
-}
-
-func (c ChangeService) IsOk(humidity float32) bool {
-	return humidity == 0.0 || (humidity >= 40.0 && humidity <= 60.0)
 }

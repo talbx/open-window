@@ -1,23 +1,28 @@
 package main
 
 import (
+	"github.com/gregdel/pushover"
+	"github.com/talbx/openwindow/pkg/service"
 	"os"
 	"os/signal"
 	"syscall"
 
-	"github.com/talbx/openwindow/pkg/broker"
-	"github.com/talbx/openwindow/pkg/model"
+	broker "github.com/talbx/openwindow/pkg/broker"
+	model "github.com/talbx/openwindow/pkg/model"
 )
 
-var c chan os.Signal
+var bc chan os.Signal
 
 func main() {
 	logger := model.CreateSugaredLogger()
 	model.CreateOpenWindowConfig()
-	c = make(chan os.Signal, 1)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	broker.Attach()
-	ch := <-c
+	bc = make(chan os.Signal, 1)
+	signal.Notify(bc, os.Interrupt, syscall.SIGTERM)
+	var n = service.NotifyBridge{RealNotifier: service.NotificationService{App: pushover.New(model.OWC.PushoverConfig.ApiToken)}}
+	var change = service.ChangeService{N: n}
+	b := broker.Broker{Change: change, Exiter: broker.ExitHandler{}}
+	b.Attach()
+	sig := <-bc
 
-	logger.Debugf("bye bye: %s", ch.String())
+	logger.Debugf("bye bye: %s", sig.String())
 }
