@@ -11,13 +11,19 @@ type Notifier interface {
 	Notify(model.TuyaHumidity, NotificationType)
 }
 
+type CanNotify interface {
+	SendMessage(message *pushover.Message, recipient *pushover.Recipient) (*pushover.Response, error)
+}
+
 var _ Notifier = NotificationService{}
 
 type Meta struct {
 	Priority int
 	Sound    string
 }
-type NotificationService struct{}
+type NotificationService struct {
+	App CanNotify
+}
 type NotificationType int
 
 const (
@@ -26,8 +32,6 @@ const (
 )
 
 func (n NotificationService) Notify(tuya model.TuyaHumidity, t NotificationType) {
-	app := pushover.New(model.OWC.PushoverConfig.ApiToken)
-
 	meta := buildMeta(t)
 	message := &pushover.Message{
 		Message:  n.buildMessage(tuya, t),
@@ -36,7 +40,7 @@ func (n NotificationService) Notify(tuya model.TuyaHumidity, t NotificationType)
 		Sound:    meta.Sound,
 	}
 	recipient := pushover.NewRecipient(model.OWC.PushoverConfig.UserToken)
-	response, err := app.SendMessage(message, recipient)
+	response, err := n.App.SendMessage(message, recipient)
 	if err != nil {
 		model.SugaredLogger.Error(err)
 		model.SugaredLogger.Errorf("No pushover message sent out due to an error communicating with the pusover api!")

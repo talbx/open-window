@@ -3,6 +3,7 @@ package broker
 import (
 	"encoding/json"
 	"errors"
+	"github.com/gregdel/pushover"
 	"os"
 	"time"
 
@@ -11,7 +12,7 @@ import (
 	"github.com/talbx/openwindow/pkg/service"
 )
 
-var n = service.NotificationService{}
+var n = service.NotifyBridge{RealNotifier: service.NotificationService{App: pushover.New(model.OWC.PushoverConfig.ApiToken)}}
 var change = service.ChangeService{N: n}
 
 func Attach() {
