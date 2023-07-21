@@ -40,8 +40,9 @@ func (e ExitHandler) Exit(tokenError error) {
 
 func (b Broker) createMqttOpts() *MQTT.ClientOptions {
 	opts := MQTT.NewClientOptions().AddBroker(model.OWC.MqttConfig.Host)
-	opts.SetClientID(model.OWC.MqttConfig.ClientId + "-" + time.Now().Format(time.DateOnly))
-	model.SugaredLogger.Infof("Set the MQTT Client Id to %v", opts.ClientID)
+	clId := model.GetGlobalConfig().ClientId + "-" + time.Now().Format(time.DateOnly)
+	opts.SetClientID(clId)
+	model.SugaredLogger.Infof("Set the MQTT Client Id to %v", clId)
 	opts.SetDefaultPublishHandler(b.HandleMessage)
 	return opts
 }

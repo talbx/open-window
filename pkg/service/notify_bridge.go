@@ -22,7 +22,7 @@ func (bridge NotifyBridge) Notify(m model.TuyaHumidity, n NotificationType) {
 	if ok && n == FIRING {
 		now := time.Now()
 		diff := now.Sub(lastSent)
-		if diff.Minutes() >= 30 {
+		if diff.Minutes() >= float64(model.GetGlobalConfig().Interval) {
 			NotifyCache[m.Device] = now
 			model.SugaredLogger.Infof("The NotifyBridge found out that the last notification for firing device %v is overdue by %v (>= 30 Minutes)", m.Device, diff.Minutes())
 			bridge.RealNotifier.Notify(m, n)

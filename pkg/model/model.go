@@ -27,21 +27,25 @@ type PushoverConfig struct {
 
 type MqttConfig struct {
 	Host     string
-	ClientId string
+	ClientId string `yaml:"clientId"`
 }
 
 type GlobalConfig struct {
-	PushoverConfig
-	OpenWindowConfig
-	MqttConfig
+	PushoverConfig   `yaml:"pushover"`
+	OpenWindowConfig `yaml:"openwindow"`
+	MqttConfig       `yaml:"mqtt"`
 }
 
 type OpenWindowConfig struct {
 	Devices  []Device
-	Interval string
+	Interval int
 }
 
 var OWC GlobalConfig
+
+func GetGlobalConfig() *GlobalConfig {
+	return &OWC
+}
 
 func CreateOpenWindowConfig() {
 	file, err := os.ReadFile("config.yaml")

@@ -13,6 +13,7 @@ type notifyMock struct {
 }
 
 func Test_NoNotificationForRecentEntry(t *testing.T) {
+	model2.OWC.Interval = 30
 
 	model2.CreateSugaredLogger()
 	mock := new(notifyMock)
@@ -29,6 +30,7 @@ func Test_NoNotificationForRecentEntry(t *testing.T) {
 
 func Test_NotificationForUnRecentEntry(t *testing.T) {
 
+	model2.OWC.Interval = 30
 	model2.CreateSugaredLogger()
 	mock := new(notifyMock)
 	mock.On("Notify")
@@ -43,6 +45,7 @@ func Test_NotificationForUnRecentEntry(t *testing.T) {
 }
 
 func Test_NotificationForUnRecentEntry2(t *testing.T) {
+	model2.OWC.Interval = 30
 
 	model2.CreateSugaredLogger()
 	mock := new(notifyMock)
@@ -63,6 +66,7 @@ func Test_NotificationForUnRecentEntry2(t *testing.T) {
 }
 
 func Test_Notify_Resolved(t *testing.T) {
+	model2.OWC.Interval = 30
 
 	model2.CreateSugaredLogger()
 	m := new(notifyMock)
@@ -76,10 +80,4 @@ func Test_Notify_Resolved(t *testing.T) {
 
 func (m *notifyMock) Notify(model2.TuyaHumidity, NotificationType) {
 	m.Called()
-}
-
-func prepareMap() map[string]time.Time {
-	m := make(map[string]time.Time, 0)
-	m["A"] = time.Now()
-	return nil
 }
