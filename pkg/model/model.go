@@ -1,6 +1,7 @@
 package model
 
 import (
+	"github.com/k0kubun/pp"
 	"os"
 
 	"gopkg.in/yaml.v3"
@@ -16,17 +17,17 @@ type TuyaHumidity struct {
 }
 
 type Device struct {
-	Topic string
-	Room  string
+	Topic string `yaml:"topic"`
+	Room  string `yaml:"room"`
 }
 
 type PushoverConfig struct {
-	ApiToken  string
-	UserToken string
+	ApiToken  string `yaml:"apiToken"`
+	UserToken string `yaml:"userToken"`
 }
 
 type MqttConfig struct {
-	Host     string
+	Host     string `yaml:"host"`
 	ClientId string `yaml:"clientId"`
 }
 
@@ -56,8 +57,27 @@ func CreateOpenWindowConfig() {
 	}
 	err = yaml.Unmarshal(file, &OWC)
 
+	SugaredLogger.Infof("successfully loaded OWC config")
+	logConfig()
 	if err != nil {
 		SugaredLogger.Errorf("there was an error parsing the config.toml", err)
 		os.Exit(1)
 	}
+}
+
+func logConfig() {
+	pp.Printf("mqtt-conf: %+v\n", OWC.MqttConfig)
+	pp.Printf("openwindow-conf: %+v\n", OWC.OpenWindowConfig)
+
+	oapi := obfucscate(OWC.ApiToken)
+	ouse := obfucscate(OWC.UserToken)
+	pp.Printf("pushover-conf: %+v\n", PushoverConfig{oapi, ouse})
+}
+
+func obfucscate(s string) string {
+	obfuscate := ""
+	for i := 0; i < len(s); i++ {
+		obfuscate += "*"
+	}
+	return obfuscate
 }

@@ -1,6 +1,8 @@
 package service
 
 import (
+	"fmt"
+	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/mock"
 	model2 "github.com/talbx/openwindow/pkg/model"
 	"testing"
@@ -12,7 +14,12 @@ type notifyMock struct {
 	Notifier
 }
 
+func Before() {
+	delete(NotifyCache, "A")
+}
+
 func Test_NoNotificationForRecentEntry(t *testing.T) {
+	fmt.Println(NotifyCache)
 	model2.OWC.Interval = 30
 
 	model2.CreateSugaredLogger()
@@ -36,7 +43,7 @@ func Test_NotificationForUnRecentEntry(t *testing.T) {
 	mock.On("Notify")
 	bridge := NotifyBridge{RealNotifier: mock}
 
-	NotifyCache["A"] = time.Now().Add(-31 * time.Minute)
+	NotifyCache["A"] = time.Now().AddDate(0, 0, -1)
 
 	model := model2.TuyaHumidity{Humidity: 60, Device: "A"}
 	bridge.Notify(model, FIRING)
@@ -63,6 +70,20 @@ func Test_NotificationForUnRecentEntry2(t *testing.T) {
 	bridge.Notify(model, FIRING)
 
 	mock.AssertNumberOfCalls(t, "Notify", 2)
+}
+
+func Test_New(t *testing.T) {
+	model2.OWC.Interval = 30
+	Before()
+	model2.CreateSugaredLogger()
+	m := new(notifyMock)
+	m.On("Notify")
+	bridge := NotifyBridge{RealNotifier: m}
+
+	model := model2.TuyaHumidity{Humidity: 80, Device: "A"}
+	bridge.Notify(model, FIRING)
+	m.AssertNumberOfCalls(t, "Notify", 1)
+	assert.NotNil(t, NotifyCache[model.Device])
 }
 
 func Test_Notify_Resolved(t *testing.T) {

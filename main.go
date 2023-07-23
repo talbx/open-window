@@ -15,6 +15,7 @@ var bc chan os.Signal
 
 func main() {
 	logger := model.CreateSugaredLogger()
+	logger.Info("open-window started")
 	model.CreateOpenWindowConfig()
 	bc = make(chan os.Signal, 1)
 	signal.Notify(bc, os.Interrupt, syscall.SIGTERM)
@@ -23,6 +24,5 @@ func main() {
 	b := broker.Broker{Change: change, Exiter: broker.ExitHandler{}}
 	b.Attach()
 	sig := <-bc
-
-	logger.Debugf("bye bye: %s", sig.String())
+	logger.Debugf("open-window shutting down with signal %v", sig.String())
 }
