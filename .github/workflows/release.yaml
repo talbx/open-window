@@ -6,6 +6,8 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
+    permissions:
+      contents: write
     steps:
     - name: create-gh-release
       uses: softprops/action-gh-release@v0.1.13
