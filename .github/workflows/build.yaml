@@ -1,8 +1,6 @@
 name: open-window-build
 on:
   push:
-    tags:
-        - "v*.*.*"
     branches: [ main ]
   pull_request:
     branches: [ main ]
@@ -41,22 +39,3 @@ jobs:
       env:
         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}  # Needed to get PR information, if any
         SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  release:
-    needs: build
-    runs-on: ubuntu-latest
-    if: github.ref == 'refs/heads/main'
-    steps:
-    - name: Get next version
-      uses: reecetech/version-increment@2023.4.1
-      id: version
-      with:
-        scheme: semver
-        increment: patch
-    - uses: rickstaa/action-create-tag@v1
-      name: Create tag
-      with:
-        tag: ${{ steps.version.outputs.version }}
-        tag_exists_error: true
-        message: "(auto) Perform open-window release ${{ steps.version.outputs.version }}"
-    - name: create-gh-release
-      uses: softprops/action-gh-release@v0.1.13
