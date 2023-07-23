@@ -107,7 +107,7 @@ func (t *tokenMock2) Error() error {
 	return errors.New("oh no")
 }
 
-func (c *clientMock) Subscribe(topic string, qos byte, callback mqtt.MessageHandler) mqtt.Token {
+func (c *clientMock) Subscribe(topic string, _ byte, _ mqtt.MessageHandler) mqtt.Token {
 	c.Called(topic)
 	t := new(tokenMock)
 	t.On("Wait")
@@ -115,7 +115,7 @@ func (c *clientMock) Subscribe(topic string, qos byte, callback mqtt.MessageHand
 	return t
 }
 
-func (c *clientMock2) Subscribe(topic string, qos byte, callback mqtt.MessageHandler) mqtt.Token {
+func (c *clientMock2) Subscribe(topic string, _ byte, _ mqtt.MessageHandler) mqtt.Token {
 	c.Called(topic)
 	t := new(tokenMock2)
 	t.On("Wait")
@@ -216,16 +216,12 @@ func Test_handleMessage(t *testing.T) {
 
 }
 
-type changeI interface {
-	HandleChange(h model.TuyaHumidity)
-}
-
 type changeMock struct {
 	service.ChangeService
 	mock.Mock
 }
 
-func (c *changeMock) HandleChange(h model.TuyaHumidity) {
+func (c *changeMock) HandleChange(_ model.TuyaHumidity) {
 	c.Called()
 }
 
@@ -289,7 +285,7 @@ type exitMock struct {
 	mock.Mock
 }
 
-func (e *exitMock) Exit(err error) {
+func (e *exitMock) Exit(_ error) {
 	e.Called()
 }
 

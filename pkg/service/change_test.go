@@ -15,16 +15,10 @@ type FakeNotifier struct {
 var received model.TuyaHumidity
 var receivedType NotificationType
 
-func (f FakeNotifier) Notify(tuya model.TuyaHumidity, typus NotificationType) {
+func (f *FakeNotifier) Notify(tuya model.TuyaHumidity, typus NotificationType) {
 	received = tuya
 	receivedType = typus
 }
-
-func (f FakeNotifier) buildMessage(tuya model.TuyaHumidity, typus NotificationType) string {
-	return ""
-}
-
-var F FakeNotifier = FakeNotifier{}
 
 func Test_HandleChange(t *testing.T) {
 	model.CreateSugaredLogger()
@@ -47,15 +41,15 @@ func Test_HandleChange(t *testing.T) {
 		Device:   "DeviceA",
 		Humidity: 59.3,
 	}
-
-	service := ChangeService{N: &F}
+	f := new(FakeNotifier)
+	service := ChangeService{N: f}
 
 	service.HandleChange(a1)
 	assert.Equal(t, receivedType, FIRING)
 	service.HandleChange(a2)
 	assert.Equal(t, receivedType, FIRING)
 	service.HandleChange(b3)
-	F.Mock.AssertNotCalled(t, "Notify")
+	f.Mock.AssertNotCalled(t, "Notify")
 	service.HandleChange(a4)
 	assert.Equal(t, receivedType, RESOLVED)
 
@@ -74,8 +68,8 @@ func Test_IsResolved(t *testing.T) {
 		Humidity: 69.3,
 	}
 
-	service := ChangeService{N: &F}
-
+	f := new(FakeNotifier)
+	service := ChangeService{N: f}
 	storedHumidity["DeviceA"] = 61.5
 	storedHumidity["DeviceB"] = 61.5
 	resolved := service.IsResolved(a4)

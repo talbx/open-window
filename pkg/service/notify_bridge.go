@@ -47,7 +47,6 @@ func (bridge NotifyBridge) handleFiredBefore(m model.TuyaHumidity, lastSent time
 		return
 	}
 	model.SugaredLogger.Debugf("last notification for firing device %v is only %v minutes old. Therefore the notifier will not be triggered", m.Device, diff.Minutes())
-	return
 }
 
 func (bridge NotifyBridge) handleNeverFiredBefore(m model.TuyaHumidity) {
