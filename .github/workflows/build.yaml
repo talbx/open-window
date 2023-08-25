@@ -5,7 +5,7 @@ on:
   pull_request:
     branches: [ main ]
 env:
-  GO_VERSION: 1.20.6
+  GO_VERSION: 1.21.0
 jobs:
   build:
     runs-on: ubuntu-latest
