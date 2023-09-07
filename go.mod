@@ -22,7 +22,7 @@ require (
 
 require (
 	github.com/gorilla/websocket v1.5.0 // indirect
-	github.com/gregdel/pushover v1.2.1
+	github.com/gregdel/pushover v1.3.0
 	github.com/stretchr/testify v1.8.4
 	go.uber.org/zap v1.25.0
 	golang.org/x/net v0.9.0 // indirect
