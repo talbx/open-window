@@ -10,6 +10,8 @@ github.com/gregdel/pushover v1.2.0 h1:SLnpvJijUyEZvkJNyrldGhFhryYgQYlThSLpB5Oqt5
 github.com/gregdel/pushover v1.2.0/go.mod h1:EcaO66Nn1StkpEm1iKtBTV3d2A16SoMsVER1PthX7to=
 github.com/gregdel/pushover v1.2.1 h1:IPPJCdzXz60gMqnlzS0ZAW5z5aS1gI4nU+YM0Pe+ssA=
 github.com/gregdel/pushover v1.2.1/go.mod h1:EcaO66Nn1StkpEm1iKtBTV3d2A16SoMsVER1PthX7to=
+github.com/gregdel/pushover v1.3.0 h1:CewbxqsThoN/1imgwkDKFkRkltaQMoyBV0K9IquQLtw=
+github.com/gregdel/pushover v1.3.0/go.mod h1:EcaO66Nn1StkpEm1iKtBTV3d2A16SoMsVER1PthX7to=
 github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88 h1:uC1QfSlInpQF+M0ao65imhwqKnz3Q2z/d8PWZRMQvDM=
 github.com/k0kubun/colorstring v0.0.0-20150214042306-9440f1994b88/go.mod h1:3w7q1U84EfirKl04SVQ/s7nPm1ZPhiXd34z40TNz36k=
 github.com/k0kubun/pp v3.0.1+incompatible h1:3tqvf7QgUnZ5tXO6pNAZlrvHgl6DvifjDrd9g2S9Z40=
