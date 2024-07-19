@@ -19,7 +19,7 @@ jobs:
     - run: go version && echo $GO_VERSION && echo ${{ env.GO_VERSION }}
       name: display go version
     - name: golangci-lint
-      uses: golangci/golangci-lint-action@v3
+      uses: golangci/golangci-lint-action@v6
       continue-on-error: true
       with:
         # Require: The version of golangci-lint to use.
