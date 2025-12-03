@@ -42,9 +42,14 @@ jobs:
             actions: read
 
           prompt: |
-            Create a short and concise Pull request review. Always stay concise.
-            First, describe what has been changed very briefly.
-            Then, list any issues found, if any (Potential bugs, security issues, code smells, performance issues, style issues, etc).
-            Finally, suggest improvements, if any.
+            IMPORTANT: You MUST post a comment on the pull request using the gh pr comment command.
+
+            Follow these exact steps:
+            1. First run: gh pr view --json number,title,body
+            2. Then run: gh pr diff
+            3. Review the changes for bugs, security issues, and code quality
+            4. REQUIRED: Post your review by running: gh pr comment <pr-number> --body "<your-review-text>"
+
+            Your review should be 2-3 sentences max. If no issues found, just post "LGTM".
           claude_args: '--model claude-haiku-4-5-20251001 --allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
