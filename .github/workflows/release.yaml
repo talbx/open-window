@@ -10,5 +10,5 @@ jobs:
       contents: write
     steps:
     - name: create-gh-release
-      uses: softprops/action-gh-release@v2.0.8
+      uses: softprops/action-gh-release@v2.5.0
       if: startsWith(github.ref, 'refs/tags/')
