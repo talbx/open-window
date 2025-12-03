@@ -1,0 +1,39 @@
+name: Claude Review
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  claude-review:
+    if: github.event.pull_request.user.login == 'talbx' || github.event.pull_request.user.login == 'renovate[bot]'
+    name: Review
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+      issues: read
+      id-token: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Load developer review prompt
+        id: prompt
+        run: |
+          PROMPT_CONTENT=$(cat .github/workflows/claude-review-prompt.md)
+          PROMPT_CONTENT="${PROMPT_CONTENT//\{\{REPO\}\}/${{ github.repository }}}"
+          PROMPT_CONTENT="${PROMPT_CONTENT//\{\{PR_NUMBER\}\}/${{ github.event.pull_request.number }}}"
+          echo "content<<EOF" >> $GITHUB_OUTPUT
+          echo "$PROMPT_CONTENT" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+
+      - name: Run Claude Developer Review
+        uses: anthropics/claude-code-action@v1
+        with:
+          claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
+          prompt: ${{ steps.prompt.outputs.content }}
+          claude_args: '--model claude-haiku-4-5-20251001 --allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
