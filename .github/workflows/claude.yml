@@ -42,9 +42,9 @@ jobs:
             actions: read
 
           prompt: |
-            Update the pull request description to include a summary of changes BUT ONLY IF no description was given, beside the @claude mention.
-            Analyze if the code changes make sense and are secure. If there are any issues, suggest improvements in the PR comments.
-            Ensure that the code follows best practices for Go programming.
-            Always stay concise. If the PR is okay, always answer with "LGTM" only.
+            Create a short and concise Pull request review. Always stay concise.
+            First, describe what has been changed very briefly.
+            Then, list any issues found, if any (Potential bugs, security issues, code smells, performance issues, style issues, etc).
+            Finally, suggest improvements, if any.
           claude_args: '--model claude-haiku-4-5-20251001 --allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
