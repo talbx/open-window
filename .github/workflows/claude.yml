@@ -46,5 +46,5 @@ jobs:
             Analyze if the code changes make sense and are secure. If there are any issues, suggest improvements in the PR comments.
             Ensure that the code follows best practices for Go programming.
             Always stay concise. If the PR is okay, always answer with "LGTM" only.
-          claude_args: '--model claude-haiku-4-5-20251001 --allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
+          claude_args: '--model claude-haiku-4-5-20251001 --allowed-tools "Bash(gh issue view:*),Bash(gh search:*),Bash(gh issue list:*),Bash(gh pr comment:*),Bash(gh pr edit:*),Bash(gh pr diff:*),Bash(gh pr view:*),Bash(gh pr list:*)"'
 
